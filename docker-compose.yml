@@ -1,0 +1,147 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: libreta-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: libreta
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - libreta-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Microservicio de Autenticación
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: libreta-auth
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/libreta
+      SECRET_KEY: libreta-digital-secret-key-2026
+    ports:
+      - "5005:8005"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - libreta-network
+    restart: on-failure
+
+  # Microservicio de Estudiantes
+  estudiantes-service:
+    build:
+      context: ./backend/estudiantes-service
+      dockerfile: Dockerfile
+    container_name: libreta-estudiantes
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/libreta
+    ports:
+      - "5001:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - libreta-network
+    restart: on-failure
+
+  # Microservicio de Asignaturas
+  asignaturas-service:
+    build:
+      context: ./backend/asignaturas-service
+      dockerfile: Dockerfile
+    container_name: libreta-asignaturas
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/libreta
+    ports:
+      - "5002:8002"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - libreta-network
+    restart: on-failure
+
+  # Microservicio de Evaluaciones
+  evaluaciones-service:
+    build:
+      context: ./backend/evaluaciones-service
+      dockerfile: Dockerfile
+    container_name: libreta-evaluaciones
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/libreta
+    ports:
+      - "5003:8003"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - libreta-network
+    restart: on-failure
+
+  # Microservicio de Notas
+  notas-service:
+    build:
+      context: ./backend/notas-service
+      dockerfile: Dockerfile
+    container_name: libreta-notas
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/libreta
+    ports:
+      - "5004:8004"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - libreta-network
+    restart: on-failure
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: libreta-gateway
+    ports:
+      - "5000:8000"
+    depends_on:
+      - estudiantes-service
+      - asignaturas-service
+      - evaluaciones-service
+      - notas-service
+    networks:
+      - libreta-network
+    restart: on-failure
+
+  # Frontend (servidor web simple)
+  frontend:
+    image: nginx:alpine
+    container_name: libreta-frontend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - api-gateway
+    networks:
+      - libreta-network
+
+networks:
+  libreta-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
