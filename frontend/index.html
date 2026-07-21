@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Libreta Digital - Control de Notas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <h1>Libreta Digital</h1>
+            <p class="login-subtitle">Sistema de Control de Notas</p>
+            
+            <form id="login-form" onsubmit="login(event)">
+                <div class="form-group">
+                    <label>Usuario:</label>
+                    <input type="text" id="login-username" required placeholder="Ingrese su usuario">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="password" id="login-password" required placeholder="Ingrese su contraseña">
+                </div>
+                <button type="submit" class="btn-login">Iniciar Sesión</button>
+                <p class="login-hint">Usuario: admin | Contraseña: admin123</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Aplicación Principal -->
+    <div id="app-screen" style="display: none;">
+        <header>
+            <h1>Libreta Digital</h1>
+            <p>Sistema de Control de Notas</p>
+            <div id="user-info" class="user-info"></div>
+            <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+        </header>
+
+        <nav>
+            <button class="nav-btn active" onclick="showSection('estudiantes')" data-role="admin,docente">Estudiantes</button>
+            <button class="nav-btn" onclick="showSection('asignaturas')" data-role="admin,docente">Asignaturas</button>
+            <button class="nav-btn" onclick="showSection('evaluaciones')" data-role="admin,docente">Evaluaciones</button>
+            <button class="nav-btn" onclick="showSection('notas')" data-role="admin,docente">Notas</button>
+            <button class="nav-btn" onclick="showSection('reportes')" data-role="admin,docente">Reportes</button>
+            <button class="nav-btn" onclick="showSection('mis-estudiantes')" data-role="acudiente">Mis Estudiantes</button>
+            <button class="nav-btn" onclick="showSection('usuarios')" data-role="admin">Usuarios</button>
+        </nav>
+
+    <main>
+        <!-- Sección Estudiantes -->
+        <section id="estudiantes" class="section active">
+            <h2>Gestión de Estudiantes</h2>
+            
+            <div class="form-container">
+                <h3>Nuevo Estudiante</h3>
+                <form id="form-estudiante" onsubmit="guardarEstudiante(event)">
+                    <input type="hidden" id="estudiante-id">
+                    <div class="form-group">
+                        <label>Nombre:</label>
+                        <input type="text" id="estudiante-nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido:</label>
+                        <input type="text" id="estudiante-apellido" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Código:</label>
+                        <input type="text" id="estudiante-codigo" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="estudiante-email">
+                    </div>
+                    <div class="form-group">
+                        <label>Acudiente:</label>
+                        <select id="estudiante-acudiente">
+                            <option value="">Sin acudiente</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-secondary" onclick="limpiarFormEstudiante()">Limpiar</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Lista de Estudiantes</h3>
+                <table id="tabla-estudiantes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Código</th>
+                            <th>Email</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sección Asignaturas -->
+        <section id="asignaturas" class="section">
+            <h2>Gestión de Asignaturas</h2>
+            
+            <div class="form-container">
+                <h3>Nueva Asignatura</h3>
+                <form id="form-asignatura" onsubmit="guardarAsignatura(event)">
+                    <input type="hidden" id="asignatura-id">
+                    <div class="form-group">
+                        <label>Nombre:</label>
+                        <input type="text" id="asignatura-nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Código:</label>
+                        <input type="text" id="asignatura-codigo" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción:</label>
+                        <textarea id="asignatura-descripcion"></textarea>
+                    </div>
+                    <div class="form-group" data-role="admin">
+                        <label>Docente:</label>
+                        <select id="asignatura-docente">
+                            <option value="">Seleccione un docente</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-secondary" onclick="limpiarFormAsignatura()">Limpiar</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Lista de Asignaturas</h3>
+                <table id="tabla-asignaturas">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sección Evaluaciones -->
+        <section id="evaluaciones" class="section">
+            <h2>Gestión de Evaluaciones</h2>
+            
+            <div class="form-container">
+                <h3>Nueva Evaluación</h3>
+                <form id="form-evaluacion" onsubmit="guardarEvaluacion(event)">
+                    <input type="hidden" id="evaluacion-id">
+                    <div class="form-group">
+                        <label>Nombre:</label>
+                        <input type="text" id="evaluacion-nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha:</label>
+                        <input type="date" id="evaluacion-fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ponderación (%):</label>
+                        <input type="number" id="evaluacion-ponderacion" min="0" max="100" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Asignatura:</label>
+                        <select id="evaluacion-asignatura" required></select>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-secondary" onclick="limpiarFormEvaluacion()">Limpiar</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Lista de Evaluaciones</h3>
+                <table id="tabla-evaluaciones">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Fecha</th>
+                            <th>Ponderación</th>
+                            <th>Asignatura</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sección Notas -->
+        <section id="notas" class="section">
+            <h2>Gestión de Notas</h2>
+            
+            <div class="form-container">
+                <h3>Registrar Nota</h3>
+                <form id="form-nota" onsubmit="guardarNota(event)">
+                    <input type="hidden" id="nota-id">
+                    <div class="form-group">
+                        <label>Estudiante:</label>
+                        <select id="nota-estudiante" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Evaluación:</label>
+                        <select id="nota-evaluacion" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nota (0-100):</label>
+                        <input type="number" id="nota-valor" min="0" max="100" step="0.01" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-secondary" onclick="limpiarFormNota()">Limpiar</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Lista de Notas</h3>
+                <table id="tabla-notas">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Estudiante</th>
+                            <th>Evaluación</th>
+                            <th>Nota</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Sección Reportes -->
+        <section id="reportes" class="section">
+            <h2>Reportes y Promedios</h2>
+            
+            <div class="form-container">
+                <h3>Calcular Promedio</h3>
+                <div class="form-group">
+                    <label>Estudiante:</label>
+                    <select id="reporte-estudiante"></select>
+                </div>
+                <div class="form-group">
+                    <label>Asignatura:</label>
+                    <select id="reporte-asignatura"></select>
+                </div>
+                <button class="btn-primary" onclick="calcularPromedio()">Calcular Promedio</button>
+                <button class="btn-secondary" onclick="generarReporte()">Generar Reporte de Asignatura</button>
+            </div>
+
+            <div id="resultado-promedio" class="resultado-container"></div>
+            
+            <div id="resultado-reporte" class="resultado-container"></div>
+        </section>
+
+        <!-- Sección Mis Estudiantes (Acudiente) -->
+        <section id="mis-estudiantes" class="section">
+            <h2>Mis Estudiantes</h2>
+            <p>Lista de estudiantes bajo su cuidado</p>
+            
+            <div class="table-container">
+                <h3>Estudiantes Asignados</h3>
+                <table id="tabla-mis-estudiantes">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Código</th>
+                            <th>Email</th>
+                            <th>Nota Final</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Modal para ver notas del estudiante -->
+        <div id="modal-notas-estudiante" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-titulo-notas">Notas del Estudiante</h3>
+                    <span class="close" onclick="cerrarModalNotas()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="notas-estudiante-contenido"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección Usuarios (Admin) -->
+        <section id="usuarios" class="section">
+            <h2>Gestión de Usuarios</h2>
+            
+            <div class="form-container">
+                <h3>Nuevo Usuario</h3>
+                <form id="form-usuario" onsubmit="guardarUsuario(event)">
+                    <input type="hidden" id="usuario-id">
+                    <div class="form-group">
+                        <label>Username:</label>
+                        <input type="text" id="usuario-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre:</label>
+                        <input type="text" id="usuario-nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="usuario-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña: <small id="usuario-password-hint">(requerida para nuevo usuario)</small></label>
+                        <input type="password" id="usuario-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Rol:</label>
+                        <select id="usuario-rol" required>
+                            <option value="admin">Administrador</option>
+                            <option value="docente">Docente</option>
+                            <option value="acudiente">Acudiente</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-secondary" onclick="limpiarFormUsuario()">Limpiar</button>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Lista de Usuarios</h3>
+                <table id="tabla-usuarios">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Libreta Digital - Sistema de Control de Notas © 2026</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
